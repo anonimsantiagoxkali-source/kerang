@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hacked By Raxor404</title>
+<style>
+
+* {
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:black;
+    color:white;
+    font-family:'Courier New', Courier, monospace;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    text-align:center;
+    overflow:hidden;
+    position:relative;
+}
+
+.bg-text {
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    overflow:hidden;
+    z-index:0;
+}
+
+.bg-text .baris {
+    position:absolute;
+    white-space:nowrap;
+    font-family:'Courier New', Courier, monospace;
+    font-weight:900;
+    color:#ff0000;
+    text-shadow: 0 0 30px rgba(255,0,0,0.4), 0 0 60px rgba(255,0,0,0.2);
+    opacity:0.12;
+    animation: slideKanan 6s linear infinite;
+    letter-spacing:10px;
+}
+
+.bg-text .baris:nth-child(odd) {
+    animation-name: slideKiri;
+}
+
+.bg-text .baris:nth-child(1) { top:5%; font-size:60px; animation-duration:5.5s; }
+.bg-text .baris:nth-child(2) { top:18%; font-size:80px; animation-duration:6.5s; animation-delay:-1s; }
+.bg-text .baris:nth-child(3) { top:32%; font-size:65px; animation-duration:5s; animation-delay:-2.5s; }
+.bg-text .baris:nth-child(4) { top:46%; font-size:90px; animation-duration:7s; animation-delay:-0.5s; }
+.bg-text .baris:nth-child(5) { top:60%; font-size:70px; animation-duration:5.8s; animation-delay:-3s; }
+.bg-text .baris:nth-child(6) { top:74%; font-size:85px; animation-duration:6.2s; animation-delay:-1.8s; }
+.bg-text .baris:nth-child(7) { top:88%; font-size:55px; animation-duration:5.3s; animation-delay:-4s; }
+
+.bg-text .baris:nth-child(even) {
+    animation-name: slideKiri;
+}
+
+@keyframes slideKanan {
+    0% { transform: translateX(-100%) rotate(-1deg); }
+    100% { transform: translateX(100%) rotate(-1deg); }
+}
+
+@keyframes slideKiri {
+    0% { transform: translateX(100%) rotate(1deg); }
+    100% { transform: translateX(-100%) rotate(1deg); }
+}
+
+.bg-text::before {
+    content:'';
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background: 
+        linear-gradient(180deg, 
+            transparent 0%, 
+            rgba(255,0,0,0.02) 50%, 
+            transparent 100%
+        );
+    pointer-events:none;
+    z-index:1;
+}
+
+.box {
+    padding:40px 50px;
+    max-width:750px;
+    width:90%;
+    position:relative;
+    z-index:2;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid rgba(255,0,0,0.15);
+    border-radius:15px;
+    backdrop-filter:blur(5px);
+    box-shadow: 
+        0 0 60px rgba(255,0,0,0.05),
+        inset 0 0 60px rgba(255,0,0,0.03);
+}
+
+.hacked {
+    color:#ff0000;
+    font-size: clamp(28px, 5vw, 42px);
+    letter-spacing:4px;
+    font-weight:bold;
+    text-shadow: 0 0 30px rgba(255,0,0,0.3);
+    margin-bottom:10px;
+}
+
+.logo {
+    width: min(280px, 40vw);
+    max-width:100%;
+    height:auto;
+    display:block;
+    margin:0 auto 15px auto;
+    filter: drop-shadow(0 0 40px rgba(255,0,0,0.3));
+}
+
+.sub {
+    color:#cc3333;
+    font-size: clamp(16px, 2.5vw, 22px);
+    letter-spacing:10px;
+    margin:5px 0 15px 0;
+    font-weight:bold;
+}
+
+.quote {
+    color:#8899aa;
+    font-size: clamp(13px, 2vw, 16px);
+    font-style:italic;
+    letter-spacing:2px;
+    padding:12px 0;
+    border-top:1px solid rgba(255,0,0,0.1);
+    border-bottom:1px solid rgba(255,0,0,0.1);
+    margin-bottom:15px;
+}
+
+.contact {
+    margin-top:10px;
+    padding:12px 0;
+}
+
+.contact a {
+    color:#ff0000;
+    text-decoration:none;
+    font-size:clamp(16px, 2vw, 20px);
+    font-weight:bold;
+    letter-spacing:2px;
+    transition: all 0.3s ease;
+    display:inline-block;
+    padding:10px 30px;
+    border:2px solid rgba(255,0,0,0.3);
+    border-radius:8px;
+    background: rgba(255,0,0,0.05);
+}
+
+.contact a:hover {
+    background: rgba(255,0,0,0.15);
+    border-color: #ff0000;
+    box-shadow: 0 0 40px rgba(255,0,0,0.2);
+    transform: scale(1.05);
+}
+
+.contact .label {
+    color:#666;
+    font-size:12px;
+    letter-spacing:3px;
+    margin-bottom:8px;
+    display:block;
+}
+
+
+.glitch-text {
+    animation: glitch 3s infinite;
+}
+
+@keyframes glitch {
+    0%, 90%, 100% { opacity:1; }
+    92% { opacity:0.3; transform:translateX(-3px); }
+    94% { opacity:1; transform:translateX(3px); }
+    96% { opacity:0.5; transform:translateX(-2px); }
+    98% { opacity:1; transform:translateX(2px); }
+}
+
+
+@media(max-width:480px){
+    .box {
+        padding:25px 20px;
+    }
+    .bg-text .baris {
+        font-size:35px !important;
+        letter-spacing:5px;
+    }
+    .sub {
+        letter-spacing:5px;
+    }
+    .logo {
+        width: min(200px, 50vw);
+    }
+    .contact a {
+        padding:8px 20px;
+        font-size:14px;
+    }
+}
+
+</style>
+</head>
+<body>
+  
+<div class="bg-text">
+    <span class="baris">#SANTIAGO404 TEAM</span>
+    <span class="baris">#SANTIAGO404 TEAM</span>
+    <span class="baris">#SANTIAGO404 TEAM</span>
+    <span class="baris">#SANTIAGO404 TEAM</span>
+    <span class="baris">#SANTIAGO404 TEAM</span>
+    <span class="baris">#SANTIAGO404 TEAM</span>
+    <span class="baris">#SANTIAGO404 TEAM</span>
+</div>
+
+<div class="box">
+    
+    <img src="https://media1.tenor.com/m/aMAGv8stfQMAAAAC/roblox-hackers.gif" class="logo" alt="Logo">
+    
+    <div class="sub">Hacked By Raxor404</div>
+    
+    <div class="quote">
+        "there is no patch for human stupidity."
+    </div>
+    
+    <div class="contact">
+        <span class="label">CONTACT ME</span>
+        <a href="https://t.me/user424745797" target="_blank">
+            <i>💬</i> @user424745797
+        </a>
+    </div>
+    
+    <div style="margin-top:20px; color:#333; font-size:10px; letter-spacing:2px; border-top:1px solid rgba(255,0,0,0.05); padding-top:12px;">
+        #Santiago404 Team 
+    </div>
+    
+</div>
+
+</body>
+</html>
